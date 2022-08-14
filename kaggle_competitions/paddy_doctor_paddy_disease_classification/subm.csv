@@ -749,7 +749,7 @@ image_id,label
 200748.jpg,downy_mildew
 200749.jpg,blast
 200750.jpg,tungro
-200751.jpg,normal
+200751.jpg,bacterial_leaf_streak
 200752.jpg,bacterial_leaf_blight
 200753.jpg,downy_mildew
 200754.jpg,brown_spot
@@ -994,7 +994,7 @@ image_id,label
 200993.jpg,tungro
 200994.jpg,hispa
 200995.jpg,brown_spot
-200996.jpg,dead_heart
+200996.jpg,blast
 200997.jpg,dead_heart
 200998.jpg,hispa
 200999.jpg,hispa
@@ -1289,7 +1289,7 @@ image_id,label
 201288.jpg,bacterial_leaf_blight
 201289.jpg,blast
 201290.jpg,dead_heart
-201291.jpg,brown_spot
+201291.jpg,tungro
 201292.jpg,hispa
 201293.jpg,dead_heart
 201294.jpg,hispa
@@ -1516,7 +1516,7 @@ image_id,label
 201515.jpg,dead_heart
 201516.jpg,blast
 201517.jpg,blast
-201518.jpg,blast
+201518.jpg,bacterial_panicle_blight
 201519.jpg,hispa
 201520.jpg,tungro
 201521.jpg,brown_spot
