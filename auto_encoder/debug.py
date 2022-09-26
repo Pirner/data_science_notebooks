@@ -94,7 +94,7 @@ def main():
     # Using an Adam Optimizer with lr = 0.1
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-1, weight_decay=1e-8)
 
-    epochs = 20
+    epochs = 10
     outputs = []
     losses = []
     for epoch in tqdm(range(epochs)):
@@ -107,6 +107,7 @@ def main():
 
             # Calculating the loss function
             loss = loss_function(reconstructed, image)
+            # print(loss)
 
             # The gradients are set to zero,
             # the gradient is computed and stored.
@@ -116,7 +117,7 @@ def main():
             optimizer.step()
 
             # Storing the losses in a list for plotting
-            losses.append(loss)
+            losses.append(loss.detach().numpy())
         outputs.append((epochs, image, reconstructed))
 
     # Defining the Plot Style
@@ -126,6 +127,7 @@ def main():
 
     # Plotting the last 100 values
     plt.plot(losses[-100:])
+    plt.show()
 
 
 if __name__ == '__main__':
