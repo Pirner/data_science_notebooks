@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 from kaggle_competitions.cloud_classification.generator import CloudDataGen
+from kaggle_competitions.cloud_classification.training import Trainer
 
 
 def main():
@@ -12,15 +13,17 @@ def main():
 
     # 7 classes in total, 0 -> 6 (inclusive)
     classes = df['label'].unique()
+    n_classes = len(df['label'].unique())
     # create train gen
     train_gen = CloudDataGen(
         df=df,
         im_src=os.path.join(data_path, 'images', 'train'),
         batch_size=2,
+        n_classes=n_classes,
     )
 
-    for x, y in train_gen:
-        exit(0)
+    trainer = Trainer()
+    trainer.train_model(train_gen=train_gen, classes=n_classes)
 
     print('Goodbye World')
 

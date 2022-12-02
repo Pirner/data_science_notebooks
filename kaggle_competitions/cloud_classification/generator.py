@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 import pandas as pd
 import cv2
+import numpy as np
 
 
 class CloudDataGen(tf.keras.utils.Sequence):
@@ -10,6 +11,7 @@ class CloudDataGen(tf.keras.utils.Sequence):
                  df: pd.DataFrame,
                  im_src: str,
                  batch_size: int,
+                 n_classes: int,
                  input_size=(224, 224, 3),
                  shuffle=True
                  ):
@@ -24,6 +26,7 @@ class CloudDataGen(tf.keras.utils.Sequence):
         self.df = df.copy()
         self.im_src = im_src
         self.batch_size = batch_size
+        self.n_classes = n_classes
         self.input_size = input_size
         self.shuffle = shuffle
 
@@ -46,7 +49,25 @@ class CloudDataGen(tf.keras.utils.Sequence):
 
     def __getitem__(self, index):
         batches = self.df[index * self.batch_size:(index + 1) * self.batch_size]
-        exit(0)
+
+        ims = []
+        labels = []
+
+        for b in batches:
+            tmp = self.df.iloc[0]
+            im_path = os.path.join(self.im_src, tmp['id'])
+            im = cv2.imread(im_path)
+            im = cv2.resize(im, (self.input_size[0], self.input_size[1]))
+            label = np.zeros(self.n_classes, dtype=np.float32)
+            label[tmp['label']] = 1.
+
+            ims.append(im)
+            labels.append(label)
+
+        x = np.array(ims)
+        y = np.array(labels)
+
+        return x, y
 
     def __len__(self):
         return self.n // self.batch_size
