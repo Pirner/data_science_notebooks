@@ -18,7 +18,7 @@ def main():
     train_gen = CloudDataGen(
         df=df,
         im_src=os.path.join(data_path, 'images', 'train'),
-        batch_size=2,
+        batch_size=16,
         n_classes=n_classes,
     )
 

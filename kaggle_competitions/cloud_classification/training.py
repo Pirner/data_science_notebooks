@@ -42,9 +42,15 @@ class Trainer(object):
 
         # print("initial loss: {:.2f}".format(loss0))
         # print("initial accuracy: {:.2f}".format(accuracy0))
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath='resnet_model.h5',
+            # save_weights_only=True,
+            verbose=0
+        )
 
         history = model.fit(
             train_gen,
             epochs=initial_epochs,
             # validation_data=validation_dataset
+            callbacks=[cp_callback]
         )
