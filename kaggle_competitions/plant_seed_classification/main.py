@@ -1,6 +1,6 @@
 import os
-os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.6"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.6"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 # C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6
 import numpy as np
 import pandas as pd
@@ -15,12 +15,12 @@ from modeling import ModelCreator
 
 def main():
     print('train plant seed classifier')
-    data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
+    data_root = r'D:\kaggle\plant-seedlings-classification\train'
     seed_types = os.listdir(data_root)
     print(seed_types)
 
     image_size = 244
-    batch_size = 2
+    batch_size = 32
 
     image_gen = tf.keras.preprocessing.image.ImageDataGenerator(
         rescale=1. / 255,
@@ -39,6 +39,7 @@ def main():
         color_mode='rgb',
         class_mode="categorical",
         subset='training',
+        batch_size=batch_size,
     )
     validation_generator = image_gen.flow_from_directory(
         directory=data_root,
@@ -46,6 +47,7 @@ def main():
         color_mode='rgb',
         class_mode="categorical",
         subset='validation',
+        batch_size=batch_size,
     )
 
     # test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1. / 255)
@@ -65,9 +67,7 @@ def main():
 
     result = model.fit_generator(
         train_generator,
-        epochs=30,
-        steps_per_epoch=3803 // batch_size,
-        validation_steps=947 // batch_size,
+        epochs=50,
         validation_data=validation_generator,
         callbacks=[early_stop],
         verbose=1
