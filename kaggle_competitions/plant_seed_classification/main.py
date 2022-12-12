@@ -15,12 +15,12 @@ from modeling import ModelCreator
 
 def main():
     print('train plant seed classifier')
-    data_root = r'D:\kaggle\plant-seedlings-classification\train'
+    data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
     seed_types = os.listdir(data_root)
     print(seed_types)
 
     image_size = 244
-    batch_size = 32
+    batch_size = 16
 
     image_gen = tf.keras.preprocessing.image.ImageDataGenerator(
         rescale=1. / 255,
@@ -63,13 +63,22 @@ def main():
 
     model = ModelCreator.create_base_model(image_size=image_size)
     early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model\model.h5',
+        save_best_only=True,
+        monitor='val_accuracy',
+        verbose=1
+    )
+    board_callback = tf.keras.callbacks.TensorBoard(
+        r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model\logs'
+    )
     print(train_generator.class_indices)
 
     result = model.fit_generator(
         train_generator,
         epochs=50,
         validation_data=validation_generator,
-        callbacks=[early_stop],
+        callbacks=[early_stop, cp_callback, board_callback],
         verbose=1
     )
     print('finished plant seed classifier')
