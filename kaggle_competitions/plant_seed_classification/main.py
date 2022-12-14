@@ -20,7 +20,7 @@ def main():
     print(seed_types)
 
     image_size = 244
-    batch_size = 16
+    batch_size = 10
 
     image_gen = tf.keras.preprocessing.image.ImageDataGenerator(
         rescale=1. / 255,
@@ -61,16 +61,19 @@ def main():
     #     class_mode='categorical'
     # )
 
-    model = ModelCreator.create_base_model(image_size=image_size)
+    # model = ModelCreator.create_base_model(image_size=image_size)
+    model = ModelCreator.create_resnet50_model(image_size=image_size)
+    # exit(0)
     early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+    dst_dir = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model\resnet50'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model\model.h5',
+        filepath=os.path.join(dst_dir, 'model.h5'),
         save_best_only=True,
         monitor='val_accuracy',
         verbose=1
     )
     board_callback = tf.keras.callbacks.TensorBoard(
-        r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model\logs'
+        os.path.join(dst_dir, 'logs'),
     )
     print(train_generator.class_indices)
 

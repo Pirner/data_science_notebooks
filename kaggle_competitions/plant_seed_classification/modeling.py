@@ -6,6 +6,26 @@ class ModelCreator(object):
         pass
 
     @staticmethod
+    def create_resnet50_model(image_size):
+        """
+        creates a classification model with resnet50 as backbone
+        :param image_size:
+        :return:
+        """
+        # resnet = ResNet50(weights='imagenet', input_shape=(224, 224, 3), include_top=False)
+        base_model = tf.keras.applications.ResNet50(
+            weights='imagenet',
+            include_top=False,
+            input_shape=(image_size, image_size, 3)
+        )
+        x = tf.keras.layers.Flatten()(base_model.output)
+        x = tf.keras.layers.Dense(12, activation='softmax')(x)
+        model = tf.keras.Model(base_model.inputs, x)
+        model.summary()
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        return model
+
+    @staticmethod
     def create_base_model(image_size):
         """
         create the base model
