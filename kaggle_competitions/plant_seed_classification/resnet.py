@@ -1,12 +1,3 @@
-import os
-# os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.6"
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-# C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-import cv2
-
 # Import the necessary packages
 import numpy as np
 from tensorflow.keras import backend as K
@@ -24,19 +15,13 @@ from math import exp
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.resnet_v2 import preprocess_input
 
-from modeling import ModelCreator
-
 
 def main():
-    print('train plant seed classifier')
     data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
-    seed_types = os.listdir(data_root)
-    print(seed_types)
+    batch_size = 32
     seed = 42
-
-    image_size = 224
-    batch_size = 4
     val_split = 0.2
+    image_size = (256, 256)
 
     train_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,  # Standandardize for Resnet
@@ -56,7 +41,7 @@ def main():
 
     train_generator = train_datagen.flow_from_directory(
         data_root,  # It should contain one subdirectory per class.
-        target_size=(image_size, image_size),  # Dims to which all images found will be resized.
+        target_size=image_size,  # Dims to which all images found will be resized.
         color_mode='rgb',
         batch_size=batch_size,
         class_mode="categorical",  # Type of label arrays that are returned
@@ -67,7 +52,7 @@ def main():
 
     val_generator = val_datagen.flow_from_directory(
         data_root,
-        target_size=(image_size, image_size),
+        target_size=image_size,
         color_mode='rgb',
         batch_size=batch_size,
         class_mode="categorical",
@@ -76,15 +61,22 @@ def main():
         shuffle=True
     )
 
-    input_shape_c = tuple((image_size, image_size, 3))
+    input_shape_c = tuple((image_size[0], image_size[1], 3))
     print(input_shape_c)
 
     base_model = ResNet50V2(
         weights='imagenet',
         include_top=False,
-        input_shape=input_shape_c)
+        input_shape=input_shape_c)  # It should have exactly 3 inputs channels, and width and height should be no smaller than 32.
 
-    # We add more layers to complete the classification part
+    # base_model.summary()
+    # We freeze layers in first 4 convolutional blocks. Fifth will be re trained
+    for layer in base_model.layers:
+        if layer.name == 'conv5_block1_1_conv':
+            break
+        layer.trainable = False
+
+        # We add more layers to complete the classification part
     pre_trained_model = Sequential()
     pre_trained_model.add(base_model)
     pre_trained_model.add(layers.Flatten())
@@ -97,36 +89,42 @@ def main():
     pre_trained_model.add(layers.Dense(12, activation='softmax'))
     pre_trained_model.summary()
 
-    pre_trained_model.compile(
-        loss="categorical_crossentropy",
-        optimizer=Adam(learning_rate=1e-3),
-        metrics=["accuracy"]
+    # We compile the model
+    # Compilar el modelo
+    epochs = 200
+
+    print("[INFO]: Compiling the model...")
+    pre_trained_model.compile(loss="categorical_crossentropy",
+                              optimizer=Adam(learning_rate=1e-3),
+                              metrics=["accuracy"])
+
+    def scheduler(epoch, lr):
+        if epoch < 5:
+            return lr
+        else:
+            return lr * exp(-0.1)
+
+    annealer = LearningRateScheduler(scheduler)
+
+    earlystop = EarlyStopping(
+        patience=5,
+        monitor="val_loss",
     )
 
-    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-    dst_dir = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model'
-    train_dir = os.path.join(dst_dir, 'convnext_tiny')
-    if not os.path.exists(train_dir):
-        os.makedirs(train_dir)
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=os.path.join(train_dir, 'model.h5'),
+    modelsave = ModelCheckpoint(
+        filepath='model' + '.h5',
         save_best_only=True,
-        monitor='val_accuracy',
-        verbose=1
-    )
-    board_callback = tf.keras.callbacks.TensorBoard(
-        os.path.join(train_dir, 'logs'),
-    )
-    print(train_generator.class_indices)
+        verbose=1)
 
-    result = pre_trained_model.fit_generator(
-        train_generator,
-        epochs=50,
-        validation_data=val_generator,
-        callbacks=[early_stop, cp_callback, board_callback],
-        verbose=1
-    )
-    print('finished plant seed classifier')
+    # Entrenamiento de la red
+    print("[INFO]: Entrenando la red...")
+    H_pre = pre_trained_model.fit(train_generator,
+                                  validation_data=val_generator,
+                                  steps_per_epoch=train_generator.n // train_generator.batch_size,
+                                  validation_steps=val_generator.n // val_generator.batch_size,
+                                  epochs=epochs,
+                                  callbacks=[annealer, earlystop]
+                                  )
 
 
 if __name__ == '__main__':
