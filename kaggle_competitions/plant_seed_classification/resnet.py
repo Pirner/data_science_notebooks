@@ -1,5 +1,8 @@
 # Import the necessary packages
+import os
 import numpy as np
+
+import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Input, Conv2D, Activation, Flatten, Dense, Dropout, BatchNormalization, MaxPooling2D
 from tensorflow.keras.applications.resnet_v2 import ResNet50V2
@@ -13,15 +16,16 @@ from keras.callbacks import LearningRateScheduler, EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from math import exp
 from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.resnet_v2 import preprocess_input
+# from keras.applications.resnet_v2 import preprocess_input
+from keras.applications.convnext import preprocess_input
 
 
 def main():
     data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
-    batch_size = 32
+    batch_size = 8
     seed = 42
     val_split = 0.2
-    image_size = (256, 256)
+    image_size = (320, 320)
 
     train_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,  # Standandardize for Resnet
@@ -69,6 +73,11 @@ def main():
         include_top=False,
         input_shape=input_shape_c)  # It should have exactly 3 inputs channels, and width and height should be no smaller than 32.
 
+    base_model = tf.keras.applications.convnext.ConvNeXtBase(
+        weights='imagenet',
+        include_top=False,
+        input_shape=input_shape_c,
+    )
     # base_model.summary()
     # We freeze layers in first 4 convolutional blocks. Fifth will be re trained
     for layer in base_model.layers:
@@ -90,8 +99,7 @@ def main():
     pre_trained_model.summary()
 
     # We compile the model
-    # Compilar el modelo
-    epochs = 200
+    epochs = 50
 
     print("[INFO]: Compiling the model...")
     pre_trained_model.compile(loss="categorical_crossentropy",
@@ -99,7 +107,7 @@ def main():
                               metrics=["accuracy"])
 
     def scheduler(epoch, lr):
-        if epoch < 5:
+        if epoch < 10:
             return lr
         else:
             return lr * exp(-0.1)
@@ -111,20 +119,22 @@ def main():
         monitor="val_loss",
     )
 
-    modelsave = ModelCheckpoint(
-        filepath='model' + '.h5',
+    model_save = ModelCheckpoint(
+        filepath=os.path.join(r'C:\kaggle\plant_seedling_classification\models', 'convnext_base.h5'),
         save_best_only=True,
+        monitor='val_accuracy',
         verbose=1)
 
-    # Entrenamiento de la red
-    print("[INFO]: Entrenando la red...")
-    H_pre = pre_trained_model.fit(train_generator,
-                                  validation_data=val_generator,
-                                  steps_per_epoch=train_generator.n // train_generator.batch_size,
-                                  validation_steps=val_generator.n // val_generator.batch_size,
-                                  epochs=epochs,
-                                  callbacks=[annealer, earlystop]
-                                  )
+    # training the data on the model
+    print("[INFO]: Beginning the training ...")
+    history_pretrained = pre_trained_model.fit(
+        train_generator,
+        validation_data=val_generator,
+        # steps_per_epoch=train_generator.n // train_generator.batch_size,
+        # validation_steps=val_generator.n // val_generator.batch_size,
+        epochs=epochs,
+        callbacks=[model_save, annealer],
+    )
 
 
 if __name__ == '__main__':

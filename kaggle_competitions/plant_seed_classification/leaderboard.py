@@ -1,12 +1,34 @@
+import os
+
 import tensorflow as tf
 import pandas as pd
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications.resnet_v2 import preprocess_input
 
 
 def main():
     test_data_path = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification'
     model_path = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\model\model.h5'
+    model_path = os.path.join(r'C:\kaggle\plant_seedling_classification\models', 'resnet101.h5')
     data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
-    image_size = 244
+    image_size = 256
+    val_split = 0.2
+
+    train_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,  # Standandardize for Resnet
+        rotation_range=30,  # Int. Degree range for random rotations.
+        zoom_range=0.2,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        brightness_range=[0.7, 1.3],
+        rescale=0.9,
+        vertical_flip=True,
+        horizontal_flip=True,
+        validation_split=val_split)
+
+    val_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,
+        validation_split=val_split)
 
     image_gen = tf.keras.preprocessing.image.ImageDataGenerator(
         rescale=1. / 255,
@@ -31,7 +53,7 @@ def main():
     class_labels = list(train_generator.class_indices)
 
     test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1. / 255)
-    test_generator = test_datagen.flow_from_directory(
+    test_generator = val_datagen.flow_from_directory(
         directory=test_data_path,
         classes=['test'],
         target_size=(image_size, image_size),
