@@ -83,12 +83,13 @@ def main():
     )
     # base_model.summary()
     # We freeze layers in first 4 convolutional blocks. Fifth will be re trained
-    for layer in base_model.layers:
-        if layer.name == 'conv5_block1_1_conv':
-            break
-        layer.trainable = False
+    base_model.trainable = False
+    # for layer in base_model.layers:
+    #     if layer.name == 'conv5_block1_1_conv':
+    #         break
+    #     layer.trainable = False
 
-        # We add more layers to complete the classification part
+    # We add more layers to complete the classification part
     pre_trained_model = Sequential()
     pre_trained_model.add(base_model)
     pre_trained_model.add(layers.Flatten())
@@ -102,7 +103,7 @@ def main():
     pre_trained_model.summary()
 
     # We compile the model
-    epochs = 50
+    epochs = 20
 
     print("[INFO]: Compiling the model...")
     pre_trained_model.compile(loss="categorical_crossentropy",
@@ -137,6 +138,15 @@ def main():
         # validation_steps=val_generator.n // val_generator.batch_size,
         epochs=epochs,
         callbacks=[model_save, annealer],
+    )
+
+    base_model.trainable = True
+    print('[INFO]: Fine tune the network')
+    history_fine_tune = pre_trained_model.fit(
+        train_generator,
+        validation_data=val_generator,
+        epochs=epochs * 2,
+        callbacks=[model_save, annealer]
     )
 
 
