@@ -22,7 +22,7 @@ from keras.applications.convnext import preprocess_input
 
 def main():
     data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
-    batch_size = 8
+    batch_size = 4
     seed = 42
     val_split = 0.2
     image_size = (320, 320)
