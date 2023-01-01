@@ -22,7 +22,10 @@ from keras.applications.convnext import preprocess_input
 
 def main():
     data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification\train'
-    batch_size = 4
+    data_root = r'D:\kaggle\plant-seedlings-classification\train'
+    model_dir = r'C:\kaggle\plant_seedling_classification\models'
+    model_dir = r'D:\kaggle\plant-seedlings-classification'
+    batch_size = 16
     seed = 42
     val_split = 0.2
     image_size = (320, 320)
@@ -120,7 +123,7 @@ def main():
     )
 
     model_save = ModelCheckpoint(
-        filepath=os.path.join(r'C:\kaggle\plant_seedling_classification\models', 'convnext_base.h5'),
+        filepath=os.path.join(model_dir, 'convnext_base.h5'),
         save_best_only=True,
         monitor='val_accuracy',
         verbose=1)
