@@ -4,7 +4,7 @@ import tensorflow as tf
 import pandas as pd
 
 
-data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification'
+data_root = r'D:\kaggle\plant-seedlings-classification'
 train_val_dir = os.path.join(data_root, 'train')
 test_dir = os.path.join(data_root, 'test')
 
@@ -24,7 +24,7 @@ def define_model(width, height):
     model_input = tf.keras.layers.Input(shape=(width, height, 3), name='image_input')
     model_main = tf.keras.applications.inception_resnet_v2.InceptionResNetV2(include_top=False, weights='imagenet')(model_input)
     model_dense1 = tf.keras.layers.Flatten()(model_main)
-    model_dense2 = tf.keras.layers.Dense(128, activation='relu')(model_dense1)
+    model_dense2 = tf.keras.layers.Dense(256, activation='relu')(model_dense1)
     model_out = tf.keras.layers.Dense(12, activation="softmax")(model_dense2)
 
     model = tf.keras.models.Model(model_input,  model_out)
@@ -78,12 +78,12 @@ def define_generators(width, height, batch_size):
 
 
 def main():
-    batch_size = 4
+    batch_size = 12
     seed = 42
     val_split = 0.2
     image_size = (256, 256)
 
-    nb_epoch = 40
+    nb_epoch = 100
     batch_size = 4
     width = 288
     height = 288
