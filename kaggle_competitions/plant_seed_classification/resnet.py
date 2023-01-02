@@ -16,8 +16,8 @@ from keras.callbacks import LearningRateScheduler, EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from math import exp
 from keras.preprocessing.image import ImageDataGenerator
-# from keras.applications.resnet_v2 import preprocess_input
-from keras.applications.convnext import preprocess_input
+from keras.applications.resnet_v2 import preprocess_input
+# from keras.applications.convnext import preprocess_input
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     batch_size = 4
     seed = 42
     val_split = 0.2
-    image_size = (320, 320)
+    image_size = (256, 256)
 
     train_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,  # Standandardize for Resnet
@@ -73,11 +73,12 @@ def main():
         include_top=False,
         input_shape=input_shape_c)  # It should have exactly 3 inputs channels, and width and height should be no smaller than 32.
 
-    base_model = tf.keras.applications.convnext.ConvNeXtBase(
-        weights='imagenet',
-        include_top=False,
-        input_shape=input_shape_c,
-    )
+    # base_model = tf.keras.applications.convnext.ConvNeXtBase(
+    #     weights='imagenet',
+    #     include_top=False,
+    #     input_shape=input_shape_c,
+    # )
+
     # base_model.summary()
     # We freeze layers in first 4 convolutional blocks. Fifth will be re trained
     base_model.trainable = False
@@ -121,7 +122,7 @@ def main():
     )
 
     model_save = ModelCheckpoint(
-        filepath=os.path.join(r'C:\kaggle\plant_seedling_classification\models', 'convnext_base.h5'),
+        filepath=os.path.join(r'C:\kaggle\plant_seedling_classification\models', 'resnet50_finetune.h5'),
         save_best_only=True,
         monitor='val_accuracy',
         verbose=1)
