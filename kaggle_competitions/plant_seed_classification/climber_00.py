@@ -11,8 +11,8 @@ test_dir = os.path.join(data_root, 'test')
 
 def define_callbacks():
     save_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath='model.h5',
-        monitor='val_acc',
+        filepath='model_320.h5',
+        monitor='val_accuracy',
         save_best_only=True,
         verbose=1
     )
@@ -35,6 +35,7 @@ def define_model(width, height):
 
 def define_generators(width, height, batch_size):
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.inception_resnet_v2.preprocess_input,
         rotation_range=360,
         width_shift_range=0.3,
         height_shift_range=0.3,
@@ -43,6 +44,11 @@ def define_generators(width, height, batch_size):
         vertical_flip=True,
         horizontal_flip=True,
         validation_split=0.2,  # change to use validation instead of training on entire training set
+    )
+
+    val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.inception_resnet_v2.preprocess_input,
+        validation_split=0.2
     )
 
     train_generator = train_datagen.flow_from_directory(
@@ -54,7 +60,7 @@ def define_generators(width, height, batch_size):
         subset='training',
     )
 
-    validation_generator = train_datagen.flow_from_directory(
+    validation_generator = val_datagen.flow_from_directory(  # train_datagen.flow_from_directory(
         directory=train_val_dir,
         target_size=(width, height),
         batch_size=batch_size,
@@ -85,8 +91,8 @@ def main():
 
     nb_epoch = 100
     batch_size = 4
-    width = 288
-    height = 288
+    width = 320
+    height = 320
     species_list = ["Black-grass", "Charlock", "Cleavers", "Common Chickweed", "Common wheat", "Fat Hen",
                     "Loose Silky-bent", "Maize", "Scentless Mayweed", "Shepherds Purse", "Small-flowered Cranesbill",
                     "Sugar beet"]
