@@ -4,15 +4,15 @@ import tensorflow as tf
 import pandas as pd
 
 
-data_root = r'C:\kaggle\plant_seedling_classification\plant-seedlings-classification'
+data_root = r'D:\kaggle\plant-seedlings-classification'
 train_val_dir = os.path.join(data_root, 'train')
 test_dir = os.path.join(data_root, 'test')
 
 
 def define_callbacks():
     save_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath='model.h5',
-        monitor='val_acc',
+        filepath='model_320.h5',
+        monitor='val_accuracy',
         save_best_only=True,
         verbose=1
     )
@@ -24,7 +24,7 @@ def define_model(width, height):
     model_input = tf.keras.layers.Input(shape=(width, height, 3), name='image_input')
     model_main = tf.keras.applications.inception_resnet_v2.InceptionResNetV2(include_top=False, weights='imagenet')(model_input)
     model_dense1 = tf.keras.layers.Flatten()(model_main)
-    model_dense2 = tf.keras.layers.Dense(128, activation='relu')(model_dense1)
+    model_dense2 = tf.keras.layers.Dense(256, activation='relu')(model_dense1)
     model_out = tf.keras.layers.Dense(12, activation="softmax")(model_dense2)
 
     model = tf.keras.models.Model(model_input,  model_out)
@@ -35,6 +35,7 @@ def define_model(width, height):
 
 def define_generators(width, height, batch_size):
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.inception_resnet_v2.preprocess_input,
         rotation_range=360,
         width_shift_range=0.3,
         height_shift_range=0.3,
@@ -43,6 +44,11 @@ def define_generators(width, height, batch_size):
         vertical_flip=True,
         horizontal_flip=True,
         validation_split=0.2,  # change to use validation instead of training on entire training set
+    )
+
+    val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.inception_resnet_v2.preprocess_input,
+        validation_split=0.2
     )
 
     train_generator = train_datagen.flow_from_directory(
@@ -54,7 +60,7 @@ def define_generators(width, height, batch_size):
         subset='training',
     )
 
-    validation_generator = train_datagen.flow_from_directory(
+    validation_generator = val_datagen.flow_from_directory(  # train_datagen.flow_from_directory(
         directory=train_val_dir,
         target_size=(width, height),
         batch_size=batch_size,
@@ -78,15 +84,15 @@ def define_generators(width, height, batch_size):
 
 
 def main():
-    batch_size = 4
+    batch_size = 12
     seed = 42
     val_split = 0.2
     image_size = (256, 256)
 
-    nb_epoch = 40
+    nb_epoch = 100
     batch_size = 4
-    width = 288
-    height = 288
+    width = 320
+    height = 320
     species_list = ["Black-grass", "Charlock", "Cleavers", "Common Chickweed", "Common wheat", "Fat Hen",
                     "Loose Silky-bent", "Maize", "Scentless Mayweed", "Shepherds Purse", "Small-flowered Cranesbill",
                     "Sugar beet"]
